@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Management</title>
+<style>
+    * {
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    }
+
+    body {
+        background-color: #f4f6f8;
+        margin: 0;
+        padding: 40px 20px;
+    }
+
+    .container {
+        max-width: 700px;
+        margin: 0 auto;
+        background: #ffffff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 25px;
+    }
+
+    .user-form {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+    }
+
+    .user-form input {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 15px;
+        width: 160px;
+    }
+
+    .user-form button {
+        padding: 10px 22px;
+        background-color: #2c7be5;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 15px;
+    }
+
+    .user-form button:hover {
+        background-color: #1a5fc4;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 12px;
+        text-align: center;
+        border-bottom: 1px solid #e2e2e2;
+    }
+
+    th {
+        background-color: #f0f3f7;
+        color: #333;
+    }
+
+    .toggle-btn {
+        padding: 6px 14px;
+        background-color: #edf1f7;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .toggle-btn:hover {
+        background-color: #dde3ec;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>User Management</h1>
+
+    <form id="userForm" class="user-form">
+        <input type="text" id="name" placeholder="Name" required>
+        <input type="number" id="age" placeholder="Age" required min="1">
+        <button type="submit">Submit</button>
+    </form>
+
+    <table id="usersTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="usersTableBody"></tbody>
+    </table>
+</div>
+
+<script>
+    const STORAGE_KEY = "users_data";
+
+    function loadUsers() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            return JSON.parse(saved);
+        }
+        const defaultUsers = [
+            { id: 1, name: "John", age: 25, status: 0 },
+            { id: 2, name: "Sarah", age: 30, status: 1 },
+            { id: 3, name: "Michael", age: 22, status: 0 },
+            { id: 4, name: "Noura", age: 23, status: 0 }
+        ];
+        saveUsers(defaultUsers);
+        return defaultUsers;
+    }
+
+    function saveUsers(users) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
+    }
+
+    let users = loadUsers();
+
+    function renderTable() {
+        const tbody = document.getElementById("usersTableBody");
+        tbody.innerHTML = "";
+        users.forEach(user => {
+            const row = document.createElement("tr");
+            row.innerHTML =
+                "<td>" + user.id + "</td>" +
+                "<td>" + user.name + "</td>" +
+                "<td>" + user.age + "</td>" +
+                "<td class=\"status-cell\">" + user.status + "</td>" +
+                "<td><button class=\"toggle-btn\" data-id=\"" + user.id + "\">Toggle</button></td>";
+            tbody.appendChild(row);
+        });
+    }
+
+    document.getElementById("userForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const name = document.getElementById("name").value.trim();
+        const age = parseInt(document.getElementById("age").value);
+
+        if (name && age > 0) {
+            const newId = users.length ? Math.max(...users.map(u => u.id)) + 1 : 1;
+            users.push({ id: newId, name: name, age: age, status: 0 });
+            saveUsers(users);
+            renderTable();
+            this.reset();
+        }
+    });
+
+    document.getElementById("usersTableBody").addEventListener("click", function (e) {
+        if (e.target.classList.contains("toggle-btn")) {
+            const id = parseInt(e.target.getAttribute("data-id"));
+            const user = users.find(u => u.id === id);
+            if (user) {
+                user.status = user.status === 1 ? 0 : 1;
+                saveUsers(users);
+                renderTable();
+            }
+        }
+    });
+
+    renderTable();
+</script>
+</body>
+</html>
